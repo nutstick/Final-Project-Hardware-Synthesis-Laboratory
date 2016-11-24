@@ -71,9 +71,9 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 typedef struct {
-	float tabs[8];
-	float params[8];
-	uint8_t currIndex;
+  float tabs[8];
+  float params[8];
+  uint8_t currIndex;
 } fir_8;
 
 uint32_t sampleCounter = 0;
@@ -108,10 +108,10 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	uint8_t cmd[10];
+  uint8_t cmd[10];
 
-	/* Initialize I2C*/
-	char data;
+  /* Initialize I2C*/
+  char data;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -142,8 +142,8 @@ int main(void)
   {
   /* USER CODE END WHILE */
   /* USER CODE BEGIN 3 */
-		uint16_t data_l = 0x8080;
-		HAL_I2S_Transmit(&hi2s3, &data, 1, 1000);
+    uint16_t data_l = 0x8080;
+    HAL_I2S_Transmit(&hi2s3, &data, 1, 1000);
 
   }
   /* USER CODE END 3 */
@@ -444,69 +444,69 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void CS43I22_Init(void) {
   
-	// 4.9 Recommended Power-Up Sequence (p. 31)
+  // 4.9 Recommended Power-Up Sequence (p. 31)
 
-	// 1. Hold RESET low until the power supplies are stable.
-	HAL_Delay(100);
+  // 1. Hold RESET low until the power supplies are stable.
+  HAL_Delay(100);
 
-	// 2. Bring RESET high
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
+  // 2. Bring RESET high
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
 
-	// 3. The default state of the “Power Ctl. 1” register (0x02) is 0x01. Load the desired register settings while
+  // 3. The default state of the “Power Ctl. 1” register (0x02) is 0x01. Load the desired register settings while
   // keeping the “Power Ctl 1” register set to 0x01.
-	cmd[0] = 0x02;
-	cmd[1] = 0x01;
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  cmd[0] = 0x02;
+  cmd[1] = 0x01;
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
   // Load My Setting
-	// 7.3 Power Control 2 (p.38)
-	cmd[0] = 0x04;
-	cmd[1] = 0xAA; /* 1010 1010 ( Headphone channel is always ON. Speaker channel is always ON. )*/
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-	// 7.4 Clocking Control (p. 38)
-	cmd[0] = 0x05;
-	cmd[1] = 0x81; /* 1000 0001 ( Auto-Detect, Double-Speed Mode (DSM - 50 kHz -100 kHz Fs), MCLK Divide By 2 ) */
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-	// 7.5 Interface Control 1 (p. 40)
-	cmd[0] = 0x06;
-	cmd[1] = 0x07; /* 0000 0111 ( Slave Mode, Not Inverted SCLK, Disabled DSP, I²S up to 24-bit data, 16-bits Audio Wave Length ) */
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-	// 7.6 Interface Control 2 (p. 41)
-	// cmd[0] = 0x07;
-	// cmd[1] = 0x07;
-	// HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-	// 7.7 Passthrough x Select: PassA (p. 42)
-	cmd[0] = 0x08;
-	cmd[1] = 0x07 /* xxxx 0111 */;
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-	// 7.7 Passthrough x Select: PassB (p. 42)
-	cmd[0] = 0x09;
-	cmd[1] = 0x07; /* xxxx 0111 */
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 7.3 Power Control 2 (p.38)
+  cmd[0] = 0x04;
+  cmd[1] = 0xAA; /* 1010 1010 ( Headphone channel is always ON. Speaker channel is always ON. )*/
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 7.4 Clocking Control (p. 38)
+  cmd[0] = 0x05;
+  cmd[1] = 0x81; /* 1000 0001 ( Auto-Detect, Double-Speed Mode (DSM - 50 kHz -100 kHz Fs), MCLK Divide By 2 ) */
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 7.5 Interface Control 1 (p. 40)
+  cmd[0] = 0x06;
+  cmd[1] = 0x07; /* 0000 0111 ( Slave Mode, Not Inverted SCLK, Disabled DSP, I²S up to 24-bit data, 16-bits Audio Wave Length ) */
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 7.6 Interface Control 2 (p. 41)
+  // cmd[0] = 0x07;
+  // cmd[1] = 0x07;
+  // HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 7.7 Passthrough x Select: PassA (p. 42)
+  cmd[0] = 0x08;
+  cmd[1] = 0x07 /* xxxx 0111 */;
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 7.7 Passthrough x Select: PassB (p. 42)
+  cmd[0] = 0x09;
+  cmd[1] = 0x07; /* xxxx 0111 */
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
   // 7.8 Analog ZC and SR Settings (Address 0Ah) (p. 42)
-	cmd[0] = 0x0A;
-	cmd[1] = 0x00; /* xxxx 0000 */
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  cmd[0] = 0x0A;
+  cmd[1] = 0x00; /* xxxx 0000 */
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
   // 7.10 Playback Control 1 (p. 43)
-	cmd[0] = 0x0D;
-	cmd[1] = 0x70; /* 0111 0000 ( 0.6047 Headphone Analog Gain, Playback Volume Setting B=A )*/
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  cmd[0] = 0x0D;
+  cmd[1] = 0x70; /* 0111 0000 ( 0.6047 Headphone Analog Gain, Playback Volume Setting B=A )*/
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
   // 7.23 Limiter Control 1, Min/Max Thresholds  (p. 53)
-	cmd[0] = 0x27;
-	cmd[1] = 0x00; /* 0000 0000 ( Limiter Maximum Threshold 0 dB, Limiter Cushion Threshold 0 dB ) */
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  cmd[0] = 0x27;
+  cmd[1] = 0x00; /* 0000 0000 ( Limiter Maximum Threshold 0 dB, Limiter Cushion Threshold 0 dB ) */
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
   // 7.14 PCMx Volume: PCMA (p. 47)
-	cmd[0] = 0x1A; // | 0x80;
-	cmd[1] = 0x0A; /* 0000 1010 ( PCM Channel A Volume ) */
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  cmd[0] = 0x1A; // | 0x80;
+  cmd[1] = 0x0A; /* 0000 1010 ( PCM Channel A Volume ) */
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
   // 7.14 PCMx Volume: PCMB (p. 47)
-	cmd[0] = 0x1A; // | 0x80;
-	cmd[1] = 0x0A; /* 0000 1010 ( PCM Channel B Volume ) */
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  cmd[0] = 0x1A; // | 0x80;
+  cmd[1] = 0x0A; /* 0000 1010 ( PCM Channel B Volume ) */
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
   // 7.18 Tone Control (p. 50)
-	cmd[0] = 0x1F;
-	cmd[1] = 0x0F; /* 0000 1111 ( Treble Gain +12.0 dB, Bass Gain -10.5 dB ) */
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-	// 7.19 Master Volume Control: MSTA (p. 51)
+  cmd[0] = 0x1F;
+  cmd[1] = 0x0F; /* 0000 1111 ( Treble Gain +12.0 dB, Bass Gain -10.5 dB ) */
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 7.19 Master Volume Control: MSTA (p. 51)
   cmd[0] = 0x20;
   cmd[1] = 0x18; /* 0001 1000 */
   HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
@@ -536,36 +536,36 @@ void CS43I22_Init(void) {
   HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
   // 4. Load the required initialization settings listed in Section 4.11
   // 4.1. Write 0x99 to register 0x00.
-	cmd[0] = 0x00;
-	cmd[1] = 0x99;
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  cmd[0] = 0x00;
+  cmd[1] = 0x99;
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
   // 4.2. Write 0x80 to register 0x47
-	cmd[0] = 0x47;
-	cmd[1] = 0x80;
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-	// 4.3. Write ‘1’b to bit 7 in register 0x32.
-	cmd[0] = 0x32;
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 1, 1000);
-	HAL_I2C_Master_Receive(&hi2c1, DAC_I2C_ADDR, &regValue,1,1000);
-	cmd[0] = 0x32;
-	cmd[1] = regValue | 0x80;
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-	// 4.4. Write ‘0’b to bit 7 in register 0x32.
-	cmd[0] = 0x32;
-	cmd[1] = regValue & (~0x80);
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-	// 4.5. Write 0x00 to register 0x00.
-	cmd[0] = 0x00;
-	cmd[1] = 0x00;
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  cmd[0] = 0x47;
+  cmd[1] = 0x80;
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 4.3. Write ‘1’b to bit 7 in register 0x32.
+  cmd[0] = 0x32;
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 1, 1000);
+  HAL_I2C_Master_Receive(&hi2c1, DAC_I2C_ADDR, &regValue,1,1000);
+  cmd[0] = 0x32;
+  cmd[1] = regValue | 0x80;
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 4.4. Write ‘0’b to bit 7 in register 0x32.
+  cmd[0] = 0x32;
+  cmd[1] = regValue & (~0x80);
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 4.5. Write 0x00 to register 0x00.
+  cmd[0] = 0x00;
+  cmd[1] = 0x00;
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
 
   // 5. Apply MCLK at the appropriate frequency, as discussed in Section 4.6. SCLK may be applied or set to
   // master at any time; LRCK may only be applied or set to master while the PDN bit is set to 1.
 
-	// 6. Set the “Power Ctl 1” register (0x02) to 0x9E
-	cmd[0] = 0x02;
-	cmd[1] = 0x9E;
-	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
+  // 6. Set the “Power Ctl 1” register (0x02) to 0x9E
+  cmd[0] = 0x02;
+  cmd[1] = 0x9E;
+  HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
 
   // 7. Bring RESET low if the analog or digital supplies drop below the recommended operating condition to
   // prevent power glitch related issues.
