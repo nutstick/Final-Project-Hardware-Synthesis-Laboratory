@@ -97,7 +97,7 @@ static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
-void CS43l22_Init(void);
+void CS43I22_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -443,7 +443,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void CS43I22_Init(void) {
-  
+
   // 4.9 Recommended Power-Up Sequence (p. 31)
 
   // 1. Hold RESET low until the power supplies are stable.
