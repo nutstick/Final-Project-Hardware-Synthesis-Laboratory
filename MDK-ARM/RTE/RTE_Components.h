@@ -3,8 +3,8 @@
  * Auto generated Run-Time-Environment Component Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'soundv3' 
- * Target:  'soundv3' 
+ * Project: 'hardwareproject' 
+ * Target:  'hardwareproject' 
  */
 
 #ifndef RTE_COMPONENTS_H
