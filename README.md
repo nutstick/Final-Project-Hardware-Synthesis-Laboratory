@@ -7,7 +7,5 @@
   * [Data Sheet](https://www.cirrus.com/en/pubs/proDatasheet/CS43L22_F2.pdf)
   * [Sample code + nice code explain (โคตรยาว)](http://www.design-software.de/system/attachments/attached_binaries/000/000/059/original/100_dac.c?1432329707)
   * [Some explanation how it work but use difference function.](http://www.mind-dump.net/configuring-the-stm32f4-discovery-for-audio)
-  * http://www.intmath.com/trigonometric-graphs/music.php
-  * http://narodstream.ru/stm-urok-48-usb-device-audio/#codelink
 <hr>
 PS. This code not yet test and just work only CS43L22 without using UART.
