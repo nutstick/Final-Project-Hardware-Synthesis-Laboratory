@@ -42,7 +42,9 @@
 #define NOTEAMPLITUDE 500.0		//amplitude of the saw wave
 
 #define DAC_I2C_ADDR 0x94
-#define SIZE 687348
+#define FS 16000
+#define DMA_MAX_SZE                     0xFFFF
+#define DMA_MAX(_X_)                (((_X_) <= DMA_MAX_SZE)? (_X_):DMA_MAX_SZE)
 
 #define PI 3.14159265f
 
@@ -61,11 +63,7 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-typedef struct {
-	float tabs[8];
-	float params[8];
-	uint8_t currIndex;
-} fir_8;
+static PDMFilter_InitStruct pdm_filter;
 
 uint16_t SINE_TABLE[256] = {
    0x0000, 0x0324, 0x0647, 0x096a, 0x0c8b, 0x0fab, 0x12c8, 0x15e2,
@@ -118,6 +116,7 @@ static void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
 static void CS43I22_Init(void);
+static void MP45DT02_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -153,9 +152,10 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 	CS43I22_Init();
+  MP45DT02_Init();
 
-	for (i = 0; i < 256; i++) {
-		wav[i] = sin(2 * PI / 256.0f * i) * 2047 + 2047;
+	for (i = 0; i < 48000; i++) {
+		wav[i] = sin(2 * PI / 48000.0f * i) * 2047 + 2047;
 	}
   /* USER CODE END 2 */
 
@@ -166,24 +166,23 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-    // 10-15 sec 
+    if (HAL_I2S_GetState(&hi2s3) == HAL_I2S_STATE_READY) {
+			HAL_I2S_Transmit_DMA(&hi2s3, &wav[i], 48000);
+    }
 //		if (times >0)  {
 //			times--;
-		for (times = 0; times <= 10000; times++)  {
-			for (i = 0; i < 256; i++) {
-				if (HAL_I2S_GetState(&hi2s3) == HAL_I2S_STATE_READY) {
-					HAL_I2S_Transmit(&hi2s3, &wav[i], 1, 0);
+//		for (times = 0; times <= 10000; times++)  {
+//			for (i = 0; i < 256; i++) {
+//    if (HAL_I2S_GetState(&hi2s3) == HAL_I2S_STATE_READY) {
+//					HAL_I2S_Transmit(&hi2s3, &wav[i], 1, 0);
 					// channel = !channel;
 					// if (channel) {
 					// 	i++;
 					// 	i = i % 256;
 					// }
-				}
-			}
-		}
-		while(1){
-			i=i;
-		}
+//				}
+//			}
+//  }
 		
   }
   /* USER CODE END 3 */
@@ -489,8 +488,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-static void CS43I22_Init(void) {HAL_GPIO_WritePin(GPIOD,GPIO_PIN_4,GPIO_PIN_SET);
-
+static void CS43I22_Init(void) {
+  
   // 4.9 Recommended Power-Up Sequence (p. 31)
 
   // 1. Hold RESET low until the power supplies are stable.
@@ -686,6 +685,16 @@ static void CS43I22_Init(void) {HAL_GPIO_WritePin(GPIOD,GPIO_PIN_4,GPIO_PIN_SET)
 	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, &iReg_1B, 1, 100);
 	HAL_I2C_Master_Receive(&hi2c1, DAC_I2C_ADDR, &iReg_1B, 1, 100);
    */
+}
+
+static void MP45DT02_Init(void) {
+  pdm_filter.LP_HZ = 8000;
+  pdm_filter.HP_HZ = 10;
+  pdm_filter.Fs = FS;
+  pdm_filter.Out_MicChannels = 1;
+  pdm_filter.In_MicChannels = 1;
+  
+  PDM_Filter_Init(&pdm_filter);
 }
 /* USER CODE END 4 */
 
