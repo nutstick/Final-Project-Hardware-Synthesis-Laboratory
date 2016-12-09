@@ -35,6 +35,7 @@
 #include "stm32f4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+#include "pdm_filter.h"
 #define LED_BLUE_ON   GPIOD->BSRRL = GPIO_Pin_15;
 #define LED_BLUE_OFF  GPIOD->BSRRH = GPIO_Pin_15;
 
@@ -131,6 +132,13 @@ int main(void)
 	int i = 0;
   int channel = 0;
 	int times = 0;
+  int C_freq = (int) (48000.0 / 261.63);
+  int D_freq = (int) (48000.0 / 293.66);
+  int E_freq = (int) (48000.0 / 329.63);
+  int F_freq = (int) (48000.0 / 349.23);
+  int G_freq = (int) (48000.0 / 392.0);
+  int A_freq = (int) (48000.0 / 440.0);
+  int B_freq = (int) (48000.0 / 493.88);
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -154,8 +162,9 @@ int main(void)
 	CS43I22_Init();
   MP45DT02_Init();
 
-	for (i = 0; i < 48000; i++) {
-		wav[i] = sin(2 * PI / 48000.0f * i) * 2047 + 2047;
+  
+	for (i = 0; i < C_freq; i++) {
+		wav[i] = sin(2 * PI / C_freq * i) * 2047 + 2047;
 	}
   /* USER CODE END 2 */
 
@@ -167,7 +176,7 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
     if (HAL_I2S_GetState(&hi2s3) == HAL_I2S_STATE_READY) {
-			HAL_I2S_Transmit_DMA(&hi2s3, &wav[i], 48000);
+			HAL_I2S_Transmit_DMA(&hi2s3, wav, C_freq);
     }
 //		if (times >0)  {
 //			times--;
