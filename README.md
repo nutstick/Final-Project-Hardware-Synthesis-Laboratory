@@ -12,39 +12,22 @@
   * [Some explanation how it work but use difference function.](http://www.mind-dump.net/configuring-the-stm32f4-discovery-for-audio)
   * http://www.intmath.com/trigonometric-graphs/music.php
   * http://narodstream.ru/stm-urok-48-usb-device-audio/#codelink
-
----
-
-### MP45DT02: digital microphone Tutorials
-import file `pdm_filter.h` and `libPDMFilter_Keil.lib` to project for using PDM_Filter
-
-add following code to `main.c`
-
+<hr>
+###TO DO
+1. I2S_AUDIOFREQ_32K -> Sample frequency 16K
+- Sample-rate:  48 KHz
+- Channel-size: 16 bit
+- Channel(s):   2 (stereo)
+- STM provides MCK
 ```c
-#include "pdm_filter.h"
-...
 static PDMFilter_InitStruct pdm_filter;
-...
-int main(void) 
-{
- ...
- 
- pdm_filter.LP_HZ=8000;
- pdm_filter.HP_HZ=10;
- pdm_filter.Fs=FS;
- pdm_filter.Out_MicChannels=1;
- pdm_filter.In_MicChannels=1;
- 
- PDM_Filter_Init(&pdm_filter);
-}
+
+RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
+pdm_filter.LP_HZ=8000;
+pdm_filter.HP_HZ=10;
+pdm_filter.Fs=FS;
+pdm_filter.Out_MicChannels=1;
+pdm_filter.In_MicChannels=1;
+PDM_Filter_Init(&pdm_filter);
 ```
-
-to use pdm filter use when `pdm_fifo` is full.
-
----
-
-### CS43L22: audio DAC, speaker driver
-Note frequency calcutor
-from [reference] http://www.intmath.com/trigonometric-graphs/music.php, C is at frequency 261.63. so calculate by `48k / 261.63` 48k is number of I2S sample size.
-
-then we need to generate sine wave length equals number that we calculate above. This will be 1 loop.
+PS. just work only CS43L22 without using UART. 

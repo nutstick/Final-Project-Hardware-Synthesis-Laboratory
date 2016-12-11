@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f4xx_hal_irda.h
   * @author  MCD Application Team
-  * @version V1.5.2
-  * @date    22-September-2016
+  * @version V1.6.0
+  * @date    04-November-2016
   * @brief   Header file of IRDA HAL module.
   ******************************************************************************
   * @attention
@@ -496,6 +496,13 @@ HAL_StatusTypeDef HAL_IRDA_Receive_DMA(IRDA_HandleTypeDef *hirda, uint8_t *pData
 HAL_StatusTypeDef HAL_IRDA_DMAPause(IRDA_HandleTypeDef *hirda);
 HAL_StatusTypeDef HAL_IRDA_DMAResume(IRDA_HandleTypeDef *hirda);
 HAL_StatusTypeDef HAL_IRDA_DMAStop(IRDA_HandleTypeDef *hirda);
+/* Transfer Abort functions */
+HAL_StatusTypeDef HAL_IRDA_Abort(IRDA_HandleTypeDef *hirda);
+HAL_StatusTypeDef HAL_IRDA_AbortTransmit(IRDA_HandleTypeDef *hirda);
+HAL_StatusTypeDef HAL_IRDA_AbortReceive(IRDA_HandleTypeDef *hirda);
+HAL_StatusTypeDef HAL_IRDA_Abort_IT(IRDA_HandleTypeDef *hirda);
+HAL_StatusTypeDef HAL_IRDA_AbortTransmit_IT(IRDA_HandleTypeDef *hirda);
+HAL_StatusTypeDef HAL_IRDA_AbortReceive_IT(IRDA_HandleTypeDef *hirda);
 
 void HAL_IRDA_IRQHandler(IRDA_HandleTypeDef *hirda);
 void HAL_IRDA_TxCpltCallback(IRDA_HandleTypeDef *hirda);
@@ -503,6 +510,9 @@ void HAL_IRDA_RxCpltCallback(IRDA_HandleTypeDef *hirda);
 void HAL_IRDA_TxHalfCpltCallback(IRDA_HandleTypeDef *hirda);
 void HAL_IRDA_RxHalfCpltCallback(IRDA_HandleTypeDef *hirda);
 void HAL_IRDA_ErrorCallback(IRDA_HandleTypeDef *hirda);
+void HAL_IRDA_AbortCpltCallback(IRDA_HandleTypeDef *hirda);
+void HAL_IRDA_AbortTransmitCpltCallback(IRDA_HandleTypeDef *hirda);
+void HAL_IRDA_AbortReceiveCpltCallback(IRDA_HandleTypeDef *hirda);
 /**
   * @}
   */
