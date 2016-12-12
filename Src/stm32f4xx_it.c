@@ -36,7 +36,6 @@
 #include "stm32f4xx_it.h"
 
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -89,11 +88,9 @@ void DMA1_Stream5_IRQHandler(void)
 void SPI2_IRQHandler(void)
 {
   /* USER CODE BEGIN SPI2_IRQn 0 */
-
   /* USER CODE END SPI2_IRQn 0 */
   HAL_I2S_IRQHandler(&hi2s2);
   /* USER CODE BEGIN SPI2_IRQn 1 */
-
   /* USER CODE END SPI2_IRQn 1 */
 }
 

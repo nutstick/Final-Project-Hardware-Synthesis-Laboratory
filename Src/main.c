@@ -36,22 +36,22 @@
 
 /* USER CODE BEGIN Includes */
 #include "pdm_filter.h"
+#include <math.h>
 #define LED_BLUE_ON   GPIOD->BSRRL = GPIO_Pin_15;
 #define LED_BLUE_OFF  GPIOD->BSRRH = GPIO_Pin_15;
 
-#define NOTEFREQUENCY 0.015		//frequency of saw wave: f0 = 0.5 * NOTEFREQUENCY * 48000 (=sample rate)
-#define NOTEAMPLITUDE 500.0		//amplitude of the saw wave
-
 #define DAC_I2C_ADDR 0x94
-#define FS 16000
-#define DMA_MAX_SZE                     0xFFFF
-#define DMA_MAX(_X_)                (((_X_) <= DMA_MAX_SZE)? (_X_):DMA_MAX_SZE)
+#define FS 48000
+#define PDM_BUFFER_SIZE 64 // 8000 / 1000 * 64 / 8 
+#define PCM_BUFFER_SIZE 16 // 8000 / 1000 * 64
 
 #define PI 3.14159265f
 
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+CRC_HandleTypeDef hcrc;
+
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c3;
 
@@ -61,11 +61,16 @@ DMA_HandleTypeDef hdma_spi3_tx;
 
 SPI_HandleTypeDef hspi1;
 
+UART_HandleTypeDef huart2;
+
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-static PDMFilter_InitStruct pdm_filter;
-
+PDMFilter_InitStruct pdm_filter;
+int i = 0;
+const int freq[] = { 183, 163, 145, 137, 122, 109, 97}; 
 uint16_t wav[7][256];
+uint16_t PDM_buffer[ PDM_BUFFER_SIZE ];
+uint16_t PCM_buffer[ PCM_BUFFER_SIZE ];
 
 /* USER CODE END PV */
 
@@ -79,6 +84,8 @@ static void MX_I2C3_Init(void);
 static void MX_I2S2_Init(void);
 static void MX_I2S3_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_USART2_UART_Init(void);
+static void MX_CRC_Init(void);
 
 /* USER CODE BEGIN PFP */
 static void CS43I22_Init(void);
@@ -88,23 +95,14 @@ static void MP45DT02_Init(void);
 /* USER CODE BEGIN 0 */
 uint8_t regValue = 0xFF;
 uint8_t cmd[10];
+uint8_t currentKey = 0;
 /* USER CODE END 0 */
 
 int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	int i = 0, j = 0;
-  int channel = 0;
-	int times = 0;
-  int C_freq = (int) (48000.0 / 261.63);
-  int D_freq = (int) (48000.0 / 293.66);
-  int E_freq = (int) (48000.0 / 329.63);
-  int F_freq = (int) (48000.0 / 349.23);
-  int G_freq = (int) (48000.0 / 392.0);
-  int A_freq = (int) (48000.0 / 440.0);
-  int B_freq = (int) (48000.0 / 493.88);
-  int freq[] = { C_freq, D_freq, E_freq, F_freq, G_freq, A_freq, B_freq }; 
+	int j = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -123,6 +121,8 @@ int main(void)
   MX_I2S2_Init();
   MX_I2S3_Init();
   MX_SPI1_Init();
+  MX_USART2_UART_Init();
+  MX_CRC_Init();
 
   /* USER CODE BEGIN 2 */
 	CS43I22_Init();
@@ -131,15 +131,12 @@ int main(void)
   for (j = 0; j < 7; j++) {
     for (i = 0; i < freq[j]; i++) {
       wav[j][i] = sin(2 * PI / freq[j] * i) * 32767;
-      // FINDOUT 2 channel?
-			// iAudioData[  iDataPos * 2]      = (sin( ( (2 * 3.14159 /* PI */) / 32.0f) * iDataPos ) * 32767) ;
-			// iAudioData[ (iDataPos * 2) + 1] = iAudioData[iDataPos * 2];
     }
   }
 
-	HAL_I2S_Transmit_DMA(&hi2s3, wav, C_freq);
-
   i = 0;
+	
+	HAL_I2S_Receive_IT(&hi2s2, PCM_buffer, PCM_BUFFER_SIZE);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -149,16 +146,37 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-    //if (HAL_I2S_GetState(&hi2s3) == HAL_I2S_STATE_READY) {
-		//  HAL_I2S_Transmit_DMA(&hi2s3, wav, C_freq);
-    //}
-		/*
-    while( (SPI3->SR & (1 << 1)) == 0);
-
-		SPI3->DR = wav[0][i % freq[0]];
-		i++;
+    /*
+    uint16_t data[1024];
+		char str[8];
+		int len, i, j;
+		int dat = 0;
+		
+    if(HAL_I2S_Receive(&hi2s2, data, 1024, 10) == HAL_OK){
+			for(i = 0; i < 1024; i++){
+				for(j = 0; j < 16; j++){
+					dat += (data[i] >> j) % 2;
+				}
+			}
+			dat -= 8200;
+			len = sprintf(str, "%d", dat); 
+			HAL_UART_Transmit(&huart2, str, len, 1000);
+			HAL_UART_Transmit(&huart2, "\n\r", 2, 1000);
+		}
     */
 		
+		/*
+    uint8_t data;
+		if (HAL_UART_Receive(&huart2, &data, 1, 10) == HAL_OK) {
+			if (data - 'A' >= 0 && data - 'A' < 7) {
+				HAL_UART_Transmit(&huart2, &data, 1, 1000);
+				HAL_UART_Transmit(&huart2, "\n\r", 2, 1000);
+
+				currentKey = data - 'A';
+				i = freq[currentKey] * 2;
+				HAL_I2S_Transmit_DMA(&hi2s3, wav[currentKey], freq[currentKey]);
+			}
+		}*/
   }
   /* USER CODE END 3 */
 
@@ -227,6 +245,18 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+}
+
+/* CRC init function */
+static void MX_CRC_Init(void)
+{
+
+  hcrc.Instance = CRC;
+  if (HAL_CRC_Init(&hcrc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
 }
 
 /* I2C1 init function */
@@ -326,6 +356,25 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi1.Init.CRCPolynomial = 10;
   if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+}
+
+/* USART2 init function */
+static void MX_USART2_UART_Init(void)
+{
+
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -460,8 +509,8 @@ static void CS43I22_Init(void) {
   // 2. Bring RESET high
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
 
-  // 3. The default state of the “Power Ctl. 1” register (0x02) is 0x01. Load the desired register settings while
-	// keeping the “Power Ctl 1” register set to 0x01.
+  // 3. The default state of the ��?�?��?Power Ctl. 1��?�?�? register (0x02) is 0x01. Load the desired register settings while
+	// keeping the ��?�?��?Power Ctl 1��?�?�? register set to 0x01.
 	cmd[0] = 0x02;
 	cmd[1] = 0x01;
 	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
@@ -489,7 +538,7 @@ static void CS43I22_Init(void) {
   HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 1, 100);
   HAL_I2C_Master_Receive(&hi2c1, DAC_I2C_ADDR, &cmd[1], 1, 100);
 	// cmd[0] = 0x06;
-	// cmd[1] = 0x07; /* 0000 0111 ( Slave Mode, Not Inverted SCLK, Disabled DSP, I²S up to 24-bit data, 16-bits Audio Wave Length ) */
+	// cmd[1] = 0x07; /* 0000 0111 ( Slave Mode, Not Inverted SCLK, Disabled DSP, IยฒS up to 24-bit data, 16-bits Audio Wave Length ) */
 	cmd[1] &= (1 << 5); // Clear all bits except bit 5 which is reserved
   cmd[1] &= ~(1 << 7);  // Slave
   cmd[1] &= ~(1 << 6);  // Clock polarity: Not inverted
@@ -592,13 +641,13 @@ static void CS43I22_Init(void) {
 	cmd[0] = 0x47;
 	cmd[1] = 0x80;
 	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-  // 4.3. Write ‘1’b to bit 7 in register 0x32.
+  // 4.3. Write ��?�?��?1��?�?��?b to bit 7 in register 0x32.
 	cmd[0] = 0x32;
 	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 1, 1000);
 	HAL_I2C_Master_Receive(&hi2c1, DAC_I2C_ADDR, &cmd[1],1,1000);
-	cmd[1] | 0x80;
+	cmd[1] |= 0x80;
 	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
-  // 4.4. Write ‘0’b to bit 7 in register 0x32.
+  // 4.4. Write ��?�?��?0��?�?��?b to bit 7 in register 0x32.
 	cmd[0] = 0x32;
 	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 1, 1000);
 	HAL_I2C_Master_Receive(&hi2c1, DAC_I2C_ADDR, &cmd[1],1,1000);
@@ -612,7 +661,7 @@ static void CS43I22_Init(void) {
   // 5. Apply MCLK at the appropriate frequency, as discussed in Section 4.6. SCLK may be applied or set to
   // master at any time; LRCK may only be applied or set to master while the PDN bit is set to 1.
 
-	// 6. Set the “Power Ctl 1” register (0x02) to 0x9E
+	// 6. Set the ��?�?��?Power Ctl 1��?�?�? register (0x02) to 0x9E
 	cmd[0] = 0x02;
 	cmd[1] = 0x9E;
 	HAL_I2C_Master_Transmit(&hi2c1, DAC_I2C_ADDR, cmd, 2, 1000);
@@ -651,23 +700,34 @@ static void CS43I22_Init(void) {
 
 static void MP45DT02_Init(void) {
   pdm_filter.LP_HZ = 8000;
-  pdm_filter.HP_HZ = 10;
-  pdm_filter.Fs = FS;
+  pdm_filter.HP_HZ = 0;
+  pdm_filter.Fs = 16000;
   pdm_filter.Out_MicChannels = 1;
   pdm_filter.In_MicChannels = 1;
   
-  PDM_Filter_Init(&pdm_filter);
+  PDM_Filter_Init((PDMFilter_InitStruct*)&pdm_filter);
 }
 
-void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s3)
+void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s2)
 {
+  int c, len;
+  char str[10];
+
+  PDM_Filter_64_MSB((uint8_t*) PDM_buffer, PCM_buffer, 0, &pdm_filter);
+
+  for (c = 0; c < PCM_BUFFER_SIZE; c++) {
+    len = sprintf(str, "%d\n\r", PCM_buffer[ c ]);
+    HAL_UART_Transmit(&huart2, (uint8_t*)str, len, 10);
+  }
+
+  HAL_I2S_Receive_IT(hi2s2, PDM_buffer, PDM_BUFFER_SIZE);
 }
 
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s3)
 {
-	if(hi2s3->Instance==I2S3) {
-		HAL_I2S_Transmit_DMA(&hi2s3, wav[0], C_freq);
-	}
+	i--;
+	if (i > 0)
+		HAL_I2S_Transmit_DMA(hi2s3, wav[currentKey], freq[currentKey]);
 }
 /* USER CODE END 4 */
 
