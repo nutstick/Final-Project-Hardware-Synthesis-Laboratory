@@ -12,7 +12,7 @@
   * [Some explanation how it work but use difference function.](http://www.mind-dump.net/configuring-the-stm32f4-discovery-for-audio)
   * http://www.intmath.com/trigonometric-graphs/music.php
   * http://narodstream.ru/stm-urok-48-usb-device-audio/#codelink
-<hr>
+
 ###TO DO
 1. I2S_AUDIOFREQ_32K -> Sample frequency 16K
 - Sample-rate:  48 KHz
